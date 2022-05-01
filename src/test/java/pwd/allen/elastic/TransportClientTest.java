@@ -45,7 +45,9 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * 使用transport client操作ES
+ * 注意：Elasticsearch从7版本开始TransportClient已经过时了不再推荐使用，将在8.0版本删除，可以使用RestHighLevelClient代替
  *
+ * @deprecated
  * @author 门那粒沙
  * @create 2020-04-19 14:08
  **/

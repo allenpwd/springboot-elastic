@@ -18,3 +18,9 @@ Elasticsearch是一个分布式搜索服务，提供Restful API，底层基于Lu
     
 #### NoNodeAvailableException[None of the configured nodes are available
     cluster-name和cluster-nodes要配置正确
+    
+    
+### 注意
+Elasticsearch从7版本开始TransportClient已经过时了不再推荐使用，将在8.0版本删除，具体参考https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/transport-client.html。\
+Spring Data Elasticsearch支持TransportClient，只要它在已使用的Elasticsearch版本中可用，但从4.0版本起已经不再建议使用它。transportClient要客户端和服务端版本完全匹配的，后续想升级es，很麻烦\
+用http请求就没有这个问题，官方封装了high level rest client
