@@ -4,16 +4,18 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.settings.get.GetSettingsRequest;
+import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.GetAliasesResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.CreateIndexRequest;
-import org.elasticsearch.client.indices.CreateIndexResponse;
-import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.client.indices.*;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.settings.Settings;
 import org.junit.After;
 import org.junit.Before;
@@ -68,6 +70,7 @@ public class RestHighLevelClientTest {
 
     /**
      * 获取所有的Index
+     *
      * @throws IOException
      */
     @Test
@@ -86,9 +89,51 @@ public class RestHighLevelClientTest {
      */
     @Test
     public void ifExist() throws IOException {
-        GetIndexRequest request = new GetIndexRequest(INDEX_NAME);
-        boolean exists = client.indices().exists(request, RequestOptions.DEFAULT);
+        GetIndexRequest indexRequest = new GetIndexRequest(INDEX_NAME);
+        boolean exists = client.indices().exists(indexRequest, RequestOptions.DEFAULT);
         log.info("{}索引是否存在:{}", INDEX_NAME, exists);
+
+        if (exists) {
+            //<editor-fold desc="查询索引配置信息">
+            // 查询分片
+            GetSettingsRequest settingsRequest = new GetSettingsRequest();
+            GetSettingsResponse getSettingsResponse = client.indices().getSettings(settingsRequest, RequestOptions.DEFAULT);
+            Settings indexSettings = getSettingsResponse.getIndexToSettings().get(INDEX_NAME);
+            Integer numberOfShards = indexSettings.getAsInt("index.number_of_shards", null);
+            log.info("number_of_shards={}", numberOfShards);
+            //</editor-fold>
+        }
+    }
+
+    /**
+     * 操作mapping
+     */
+    @Test
+    public void mapping() throws IOException {
+        //<editor-fold desc="查询mapping信息">
+        GetMappingsResponse getMappingResponse = client.indices().getMapping(new GetMappingsRequest(), RequestOptions.DEFAULT);
+        Map<String, MappingMetaData> allMappings = getMappingResponse.mappings();
+        MappingMetaData indexMapping = allMappings.get(INDEX_NAME);
+        Map<String, Object> mapping = indexMapping.sourceAsMap();
+        log.info("mapping信息：{}", mapping);
+        //</editor-fold>
+
+        //<editor-fold desc="修改mapping">
+        // 报错：Mapper for [text_max_word] conflicts with existing mapping:\n[mapper [text_max_word] has different [analyzer]]分词器指定后就不能修改了
+        PutMappingRequest request = new PutMappingRequest(INDEX_NAME);
+        Map map_properties = JSONUtil.toBean("{\n" +
+                "    \"properties\": {\n" +
+                "        \"text_max_word\": {\n" +
+                "            \"type\": \"text\",\n" +
+                "            \"analyzer\": \"ik_max_word\"\n" +
+                "        }\n" +
+                "    }\n" +
+                "}", Map.class);
+        request.source(map_properties);
+
+        AcknowledgedResponse putMappingResponse = client.indices().putMapping(request, RequestOptions.DEFAULT);
+        log.info("---------------" + JSONUtil.toJsonStr(putMappingResponse));
+        //</editor-fold>
     }
 
     /**
@@ -121,14 +166,33 @@ public class RestHighLevelClientTest {
 
     /**
      * 删除索引
+     *
      * @throws IOException
      */
     @Test
     public void deleteIndex() throws IOException {
         DeleteIndexRequest request = new DeleteIndexRequest(INDEX_NAME);
 
-        // 执行创建请求
-        AcknowledgedResponse response = client.indices().delete(request, RequestOptions.DEFAULT);
-        log.info("---------------" + JSONUtil.toJsonStr(response));
+        //<editor-fold desc="同步的方式请求">
+//        AcknowledgedResponse response = client.indices().delete(request, RequestOptions.DEFAULT);
+//        log.info("---------------" + JSONUtil.toJsonStr(response));
+        //</editor-fold>
+
+
+        //<editor-fold desc="异步的方式请求">
+        ActionListener<AcknowledgedResponse> listener = new ActionListener<AcknowledgedResponse>() {
+            @Override
+            public void onResponse(AcknowledgedResponse deleteIndexResponse) {
+                log.info("执行成功:{}", JSONUtil.toJsonStr(deleteIndexResponse));
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                log.error("执行失败", e);
+
+            }
+        };
+        client.indices().deleteAsync(request, RequestOptions.DEFAULT, listener);
+        //</editor-fold>
     }
 }
