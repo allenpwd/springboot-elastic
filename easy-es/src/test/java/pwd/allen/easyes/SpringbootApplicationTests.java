@@ -6,6 +6,7 @@ import com.xpc.easyes.core.conditions.LambdaEsQueryWrapper;
 import com.xpc.easyes.core.conditions.LambdaEsUpdateWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.common.geo.GeoPoint;
+import org.elasticsearch.common.unit.DistanceUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,6 +94,26 @@ public class SpringbootApplicationTests {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * 查询圆内的地点
+	 */
+	@Test
+	public void geoDistance() {
+		// 查询以经度为23.0,纬度为115.0为圆心,半径100公里内的所有点
+		LambdaEsQueryWrapper<EasyEsDoc> wrapper = new LambdaEsQueryWrapper<>();
+		// 其中单位可以省略,默认为km
+		wrapper.geoDistance(EasyEsDoc::getGeoPoint, 100.0, DistanceUnit.KILOMETERS, new GeoPoint(23.0, 115.0));
+		// 上面语法也可以写成下面这几种形式,效果是一样的,兼容不同用户习惯而已:
+//        wrapper.geoDistance(Document::getLocation,"100km", new GeoPoint(23.0, 115.0));
+//        wrapper.geoDistance(Document::getLocation, "100km", "23.0,115.0");
+
+		//查询不在圆形内的所有点
+		// wrapper.notInGeoDistance(Document::getLocation, 100.0, DistanceUnit.KILOMETERS, new GeoPoint(23.0, 115.0));
+
+		List<EasyEsDoc> list = easyEsDocMapper.selectList(wrapper);
+		log.info("查询结果：{}", list);
 	}
 
 }
