@@ -30,9 +30,7 @@ import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.BucketOrder;
-import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregator;
-import org.elasticsearch.search.aggregations.bucket.range.RangeAggregationBuilder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.After;
 import org.junit.Before;
@@ -45,7 +43,7 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * 使用transport client操作ES
- * 注意：Elasticsearch从7版本开始TransportClient已经过时了不再推荐使用，将在8.0版本删除，可以使用RestHighLevelClient代替
+ * 注意：Elasticsearch从7版本开始TransportClient已经过时了不再推荐使用，将在8.0版本删除
  *
  * @deprecated
  * @author 门那粒沙
@@ -183,7 +181,7 @@ public class TransportClientTest {
                         .field("text_stand", "通过TransportClent添加数据")
                         .field("text_smart", "通过TransportClent添加数据")
                         .field("text_max_word", "通过TransportClent添加数据")
-                        .field("text_interests", new String[]{"击剑","橄榄球"})
+                        .field("text_interests", new String[]{"击剑", "橄榄球"})
                         .endObject()))
                 .add(client.prepareUpdate().setId("11").setDoc(XContentFactory.jsonBuilder()
                         .startObject()
@@ -370,11 +368,8 @@ public class TransportClientTest {
         //{"group_of_int":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":33,"doc_count":1,"avg_of_float":{"value":12.5}},{"key":22,"doc_count":1,"avg_of_float":{"value":22.5}},{"key":11,"doc_count":2,"avg_of_float":{"value":38.95000076293945}},{"key":55,"doc_count":1,"avg_of_float":{"value":55.5}}]}}
         AggregationBuilder builder_group = AggregationBuilders.terms("group_of_int")
                 .field("int")
-                .order(BucketOrder
-                        .aggregation("avg_of_float", true))
-                .subAggregation(AggregationBuilders
-                        .avg("avg_of_float")
-                        .field("float"));
+                .order(BucketOrder.aggregation("avg_of_float", true))
+                .subAggregation(AggregationBuilders.avg("avg_of_float").field("float"));
 
         //使用filter统计文档个数
         //{"pwd_filter":{"doc_count":5}}
