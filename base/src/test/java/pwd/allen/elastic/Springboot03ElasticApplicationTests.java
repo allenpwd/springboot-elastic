@@ -1,29 +1,47 @@
 package pwd.allen.elastic;
 
-import pwd.allen.elastic.bean.Article;
-import pwd.allen.elastic.bean.Book;
-import pwd.allen.elastic.repository.BookRepository;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.RandomUtil;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Index;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
+import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.test.context.junit4.SpringRunner;
+import pwd.allen.elastic.bean.Article;
+import pwd.allen.elastic.bean.Doc;
+import pwd.allen.elastic.repository.DocRepository;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
+@Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class Springboot03ElasticApplicationTests {
 
-	@Autowired
+	/**
+	 * 这个高版本弃用了
+	 * @deprecated
+	 */
+	@Autowired(required = false)
 	JestClient jestClient;
 
 	@Autowired
-    BookRepository bookRepository;
+	DocRepository docRepository;
+
+	/**
+	 * spring-boot-starter-data-elasticsearch:2.3.2.RELEASE用的是这个，而没有JestClient
+	 */
+	@Autowired
+	RestHighLevelClient client;
 
 
     /**
@@ -33,17 +51,23 @@ public class Springboot03ElasticApplicationTests {
 	public void testSpringDataES(){
 
 	    //创建索引
-		Book book = new Book();
-		book.setId(1);
-		book.setBookName("西游记");
-		book.setAuthor("吴承恩");
-		bookRepository.index(book);
+		Doc doc = new Doc();
+		doc.setAInt(RandomUtil.randomInt(100));
+		doc.setAFloat(RandomUtil.randomBigDecimal(new BigDecimal(100)).floatValue());
+		doc.setDate(DateUtil.date());
+		doc.setTextStand("测试下springboot data进行操作");
+		doc.setTextSmart("测试下springboot data进行操作");
+		doc.setGeoPoint(new GeoPoint(
+				RandomUtil.randomBigDecimal(new BigDecimal(20), new BigDecimal(30)).doubleValue()
+				, RandomUtil.randomBigDecimal(new BigDecimal(110), new BigDecimal(150)).doubleValue()
+		));
+		Doc rel = docRepository.save(doc);
+		log.info("保存结果：{}", rel);
 
 		//检索
-		for (Book b : bookRepository.findByBookNameLike("游")) {
-			System.out.println(b);
+		for (Doc b : docRepository.findByTextSmartLike("测试")) {
+			log.info(b.toString());
 		}
-
 	}
 
 

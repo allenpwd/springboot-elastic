@@ -6,7 +6,7 @@
 	<groupId>pwd.allen</groupId>
 	<artifactId>springboot-elastic</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
 
 	<name>springboot-elastic</name>
 	<description>Demo project for Spring Boot</description>
@@ -14,33 +14,23 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.6.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<version>2.3.2.RELEASE</version>
 	</parent>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
+		<easy-es.version>0.9.10</easy-es.version>
+<!--		<elasticsearch.version>7.0.1</elasticsearch.version>-->
 	</properties>
 
+	<modules>
+		<module>base</module>
+		<module>easy-es</module>
+	</modules>
+
 	<dependencies>
-		<!--
-		SpringBoot默认使用SpringData ElasticSearch模块进行操作
-		spring-data-elasticsearch和elasticsearch的版本对应关系可以看github上的项目说明：https://github.com/spring-projects/spring-data-elasticsearch
-		-->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/io.searchbox/jest -->
-		<dependency>
-			<groupId>io.searchbox</groupId>
-			<artifactId>jest</artifactId>
-			<version>5.3.3</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -55,10 +45,9 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.0</version>
+			<version>1.18.12</version>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>cn.hutool</groupId>
 			<artifactId>hutool-json</artifactId>
@@ -74,6 +63,5 @@
 			</plugin>
 		</plugins>
 	</build>
-
 
 </project>

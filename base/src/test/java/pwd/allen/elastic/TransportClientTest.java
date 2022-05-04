@@ -18,12 +18,12 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.health.ClusterIndexHealth;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
+import org.elasticsearch.index.reindex.DeleteByQueryRequestBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -31,13 +31,11 @@ import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.BucketOrder;
 import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregator;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.ExecutionException;
 
@@ -60,8 +58,8 @@ public class TransportClientTest {
         Settings settings = Settings.builder().put("cluster.name", "elasticsearch").build();
 
         //创建访问es服务器的客户端
-        client = new PreBuiltTransportClient(settings)
-                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.118.201"), 9300));
+//        client = new PreBuiltTransportClient(settings)
+//                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.118.201"), 9300));
     }
 
     @After
@@ -208,10 +206,11 @@ public class TransportClientTest {
     @Test
     public void query4Delete() {
         //把匹配的记录做删除操作
-        BulkByScrollResponse bulkByScrollResponse = DeleteByQueryAction.INSTANCE.newRequestBuilder(client)
+        BulkByScrollResponse bulkByScrollResponse = new DeleteByQueryRequestBuilder(client, DeleteByQueryAction.INSTANCE)
                 .filter(QueryBuilders.matchQuery("text_stand", "哈"))
                 .source("index_test")
                 .get();
+
 
         long deleted = bulkByScrollResponse.getDeleted();
         log.info("----------------删除文档的个数：{}", deleted);
