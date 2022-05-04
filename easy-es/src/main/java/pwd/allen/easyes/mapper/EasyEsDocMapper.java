@@ -8,4 +8,5 @@ import pwd.allen.easyes.entity.EasyEsDoc;
  * @create 2022-05-04 13:40
  **/
 public interface EasyEsDocMapper extends BaseEsMapper<EasyEsDoc> {
+
 }

@@ -5,6 +5,7 @@ import com.xpc.easyes.core.anno.TableId;
 import com.xpc.easyes.core.anno.TableName;
 import com.xpc.easyes.core.enums.Analyzer;
 import com.xpc.easyes.core.enums.FieldType;
+import com.xpc.easyes.core.enums.IdType;
 import lombok.Data;
 import org.elasticsearch.common.geo.GeoPoint;
 
@@ -23,19 +24,24 @@ import java.util.Date;
 public class EasyEsDoc {
 
     /**
-     * es中的唯一id
+     * CUSTOMIZE：需要自己指定id，否则报错：the entity id must not be null；如果用户指定的id在es中已存在记录,则自动更新该id对应的记录.
      */
-    @TableId
+    @TableId(type = IdType.CUSTOMIZE)
     private String id;
+    @TableField(fieldType = FieldType.TEXT)
     private String textStand;
     private Integer aInt;
     private Float aFloat;
     private Date date;
     /**
-     * 经纬度 lon经度 lat纬度
+     * 经纬度 格式：lat,lon
+     * 字段类型推荐使用String,因为wkt文本格式就是String；这里如果用GeoPoint类型会报json解析相关的错误
+     *
+     * (GeoBoundingBox,GeoDistance,GeoPolygon)字段索引类型必须为geo_point
+     * GeoShape字段索引类型必须为geo_shape
      */
     @TableField(fieldType = FieldType.GEO_POINT)
-    private GeoPoint geoPoint;
+    private String geoPoint;
     @TableField(fieldType= FieldType.TEXT,analyzer= Analyzer.IK_SMART,searchAnalyzer=Analyzer.IK_SMART)
     private String textSmart;
     @TableField(fieldType= FieldType.TEXT,analyzer= Analyzer.IK_MAX_WORD,searchAnalyzer=Analyzer.IK_MAX_WORD)
