@@ -78,7 +78,7 @@ public class RestHighLevelClientTest {
         String host = null;
         Properties pps = new Properties();
         pps.load(RestHighLevelClientTest.class.getClassLoader().getResourceAsStream("application.properties"));
-        host = pps.getProperty("spring.elasticsearch.jest.uris");
+        host = pps.getProperty("spring.elasticsearch.rest.uris");
         host = host.replace("http://", "");
 
         ClientConfiguration clientConfiguration = ClientConfiguration.builder()
@@ -140,37 +140,6 @@ public class RestHighLevelClientTest {
     }
 
     /**
-     * 操作mapping
-     */
-    @Test
-    public void mapping() throws IOException {
-        //<editor-fold desc="查询mapping信息">
-        GetMappingsResponse getMappingResponse = client.indices().getMapping(new GetMappingsRequest(), RequestOptions.DEFAULT);
-        Map<String, MappingMetaData> allMappings = getMappingResponse.mappings();
-        MappingMetaData indexMapping = allMappings.get(INDEX_NAME);
-        Map<String, Object> mapping = indexMapping.sourceAsMap();
-        log.info("mapping信息：{}", mapping);
-        //</editor-fold>
-
-        //<editor-fold desc="修改mapping">
-        // 报错：Mapper for [text_max_word] conflicts with existing mapping:\n[mapper [text_max_word] has different [analyzer]]分词器指定后就不能修改了
-        PutMappingRequest request = new PutMappingRequest(INDEX_NAME);
-        Map map_properties = JSONUtil.toBean("{\n" +
-                "    \"properties\": {\n" +
-                "        \"text_max_word\": {\n" +
-                "            \"type\": \"text\",\n" +
-                "            \"analyzer\": \"ik_max_word\"\n" +
-                "        }\n" +
-                "    }\n" +
-                "}", Map.class);
-        request.source(map_properties);
-
-        AcknowledgedResponse putMappingResponse = client.indices().putMapping(request, RequestOptions.DEFAULT);
-        log.info("---------------" + JSONUtil.toJsonStr(putMappingResponse));
-        //</editor-fold>
-    }
-
-    /**
      * 创建索引
      */
     @Test
@@ -179,7 +148,7 @@ public class RestHighLevelClientTest {
 
         // 设置分片数量和副本数量
         request.settings(Settings.builder()
-                .put("index.number_of_shards", 1)
+                .put("index.number_of_shards", 2)
                 .put("index.number_of_replicas", 1));
 
         // 字段映射
@@ -196,6 +165,37 @@ public class RestHighLevelClientTest {
         CreateIndexResponse createIndexResponse = client.indices().create(request, RequestOptions.DEFAULT);
         // {"acknowledged":true,"shardsAcknowledged":true}
         log.info("---------------" + JSONUtil.toJsonStr(createIndexResponse));
+    }
+
+    /**
+     * 操作mapping，添加/更新属性text_max_word
+     */
+    @Test
+    public void mapping() throws IOException {
+        //<editor-fold desc="查询mapping信息">
+        GetMappingsResponse getMappingResponse = client.indices().getMapping(new GetMappingsRequest(), RequestOptions.DEFAULT);
+        Map<String, MappingMetaData> allMappings = getMappingResponse.mappings();
+        MappingMetaData indexMapping = allMappings.get(INDEX_NAME);
+        Map<String, Object> mapping = indexMapping.sourceAsMap();
+        log.info("mapping信息：{}", mapping);
+        //</editor-fold>
+
+        //<editor-fold desc="修改mapping">
+        // 如果属性已经指定了其他分词器，修改分词器会报错：Mapper for [text_max_word] conflicts with existing mapping:\n[mapper [text_max_word] has different [analyzer]]分词器指定后就不能修改了
+        PutMappingRequest request = new PutMappingRequest(INDEX_NAME);
+        Map map_properties = JSONUtil.toBean("{\n" +
+                "    \"properties\": {\n" +
+                "        \"text_max_word\": {\n" +
+                "            \"type\": \"text\",\n" +
+                "            \"analyzer\": \"ik_max_word\"\n" +
+                "        }\n" +
+                "    }\n" +
+                "}", Map.class);
+        request.source(map_properties);
+
+        AcknowledgedResponse putMappingResponse = client.indices().putMapping(request, RequestOptions.DEFAULT);
+        log.info("---------------" + JSONUtil.toJsonStr(putMappingResponse));
+        //</editor-fold>
     }
 
     /**
