@@ -268,7 +268,7 @@ public class RestHighLevelClientTest {
         String id = indexResponse.getId();
         GetRequest getRequest = new GetRequest(INDEX_NAME).id(id);
         GetResponse getResponse = client.get(getRequest, RequestOptions.DEFAULT);
-        log.info("-------------查询文档：{}", JSONUtil.toJsonStr(getResponse));
+        log.info("-------------查询文档：{}", JSONUtil.toJsonStr(getResponse.getSource()));
 
         // Disable fetching _source.
         getRequest.fetchSourceContext(new FetchSourceContext(false));
@@ -305,10 +305,18 @@ public class RestHighLevelClientTest {
 
     /**
      * 分析分词
+     *  standard：默认分词器，中文会逐字拆分
+     *  whitespace：以空白符分隔，把文本拆分成若干词项
+     *  simple：
+     *  stop：
+     *  pattern：
+     *  english：
+     *  ik_smart：最少切分，分词少，但占用内存低一些
+     *  ik_max_word：最细切分，分词多，但占用内存多
      */
     @Test
     public void analyzeRequest() throws IOException {
-        AnalyzeRequest request = AnalyzeRequest.withGlobalAnalyzer("ik_smart", "我是一个程序员", "I am cxy!")
+        AnalyzeRequest request = AnalyzeRequest.withGlobalAnalyzer("ik_max_word", "我是一个程序员", "I am cxy!")
                 .explain(true);  // 这个去掉的话 response会返回Null
 
         AnalyzeResponse response = client.indices().analyze(request, RequestOptions.DEFAULT);
