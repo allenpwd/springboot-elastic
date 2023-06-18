@@ -6,12 +6,16 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.ActionListener;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.analyze.AnalyzeAction;
 import org.elasticsearch.action.admin.indices.analyze.AnalyzeRequestBuilder;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsRequest;
 import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
@@ -30,7 +34,10 @@ import org.elasticsearch.client.indices.*;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.VersionType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.script.Script;
@@ -183,15 +190,15 @@ public class RestHighLevelClientTest {
         //<editor-fold desc="修改mapping">
         // 如果属性已经指定了其他分词器，修改分词器会报错：Mapper for [text_max_word] conflicts with existing mapping:\n[mapper [text_max_word] has different [analyzer]]分词器指定后就不能修改了
         PutMappingRequest request = new PutMappingRequest(INDEX_NAME);
-        Map map_properties = JSONUtil.toBean("{\n" +
+        String strJson = "{\n" +
                 "    \"properties\": {\n" +
                 "        \"text_max_word\": {\n" +
                 "            \"type\": \"text\",\n" +
                 "            \"analyzer\": \"ik_max_word\"\n" +
                 "        }\n" +
                 "    }\n" +
-                "}", Map.class);
-        request.source(map_properties);
+                "}";
+        request.source(strJson, XContentType.JSON);
 
         AcknowledgedResponse putMappingResponse = client.indices().putMapping(request, RequestOptions.DEFAULT);
         log.info("---------------" + JSONUtil.toJsonStr(putMappingResponse));
@@ -256,11 +263,19 @@ public class RestHighLevelClientTest {
                 .put("text_max_word", "通过RestHighLevelClient添加数据")
                 .put("text_interests", new String[]{"滑雪", "橄榄球"}).build();
 
-        IndexRequest indexRequest = new IndexRequest(INDEX_NAME, "_doc").source(map_doc);
+        IndexRequest indexRequest = new IndexRequest(INDEX_NAME)
+                .source(map_doc)
+                .timeout(TimeValue.timeValueSeconds(1));
         // 指定id，如果不指定，则由es生成
 //        indexRequest.id("123456789");
         IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
         log.info("-------------添加文档：{}", JSONUtil.toJsonStr(indexResponse));
+        //</editor-fold>
+
+        //<editor-fold desc="全量替换文档，乐观锁">
+//        indexRequest.id(indexResponse.getId());
+//        indexRequest.version(2).versionType(VersionType.EXTERNAL_GTE); // 当2大于或者等于当前version时才能替换成功，否则报错
+//        indexRequest.create(false); // 为true时表示强制创建，若id已存在则会报错
         //</editor-fold>
 
 
@@ -286,7 +301,7 @@ public class RestHighLevelClientTest {
         log.info("-------------更新文档：{}", JSONUtil.toJsonStr(updateResponse));
 
         // 更新的方式二：使用脚本
-        updateRequest = new UpdateRequest(INDEX_NAME, "_doc", id);
+        updateRequest = new UpdateRequest(INDEX_NAME, id);
         Script inline = new Script(ScriptType.INLINE, "painless", "ctx._source.text_stand += params.text_stand",
                 Collections.singletonMap("text_stand", "test"));
         updateRequest.script(inline);
@@ -301,6 +316,39 @@ public class RestHighLevelClientTest {
         deleteRequest.type("_doc");
         DeleteResponse deleteResponse = client.delete(deleteRequest, RequestOptions.DEFAULT);
         log.info("-----------------删除文档：{}", JSONUtil.toJsonStr(deleteResponse));
+    }
+
+    @Test
+    public void bulk() throws IOException {
+        BulkRequest request = new BulkRequest();
+        request.add(new IndexRequest("post").id("1").source(XContentType.JSON, "field", "1"));
+        request.add(new IndexRequest("post").id("2").source(XContentType.JSON, "field", "2"));
+        request.add(new UpdateRequest("post","2").doc(XContentType.JSON, "field", "3"));
+        request.add(new DeleteRequest("post").id("1"));
+
+        // 执行
+        BulkResponse bulkResponse = client.bulk(request, RequestOptions.DEFAULT);
+
+        for (BulkItemResponse itemResponse : bulkResponse) {
+            DocWriteResponse itemResponseResponse = itemResponse.getResponse();
+            switch (itemResponse.getOpType()) {
+                case INDEX:
+                case CREATE:
+                    IndexResponse indexResponse = (IndexResponse) itemResponseResponse;
+                    indexResponse.getId();
+                    System.out.println(indexResponse.getResult());
+                    break;
+                case UPDATE:
+                    UpdateResponse updateResponse = (UpdateResponse) itemResponseResponse;
+                    updateResponse.getIndex();
+                    System.out.println(updateResponse.getResult());
+                    break;
+                case DELETE:
+                    DeleteResponse deleteResponse = (DeleteResponse) itemResponseResponse;
+                    System.out.println(deleteResponse.getResult());
+                    break;
+            }
+        }
     }
 
     /**
