@@ -16,8 +16,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * 		1）、Client 节点信息clusterNodes；clusterName
  * 		2）、ElasticsearchTemplate 操作es
  *		3）、编写一个 ElasticsearchRepository 的子接口来操作ES；
- *	两种用法：https://github.com/spring-projects/spring-data-elasticsearch
- *	1）、编写一个 ElasticsearchRepository
  */
 @SpringBootApplication
 public class Springboot03ElasticApplication {

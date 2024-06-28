@@ -78,18 +78,22 @@ public class RestHighLevelClientTest {
 
     private RestHighLevelClient client;
 
-    private static final String INDEX_NAME = "rest_high_level_client";
+//    private static final String INDEX_NAME = "rest_high_level_client";
+    private static final String INDEX_NAME = "umkt_enterprise20230918";
 
     @Before
     public void init() throws IOException {
-        String host = null;
+        String host = null, username = null, password = null;
         Properties pps = new Properties();
         pps.load(RestHighLevelClientTest.class.getClassLoader().getResourceAsStream("application.properties"));
         host = pps.getProperty("spring.elasticsearch.rest.uris");
+        username = pps.getProperty("spring.elasticsearch.rest.username");
+        password = pps.getProperty("spring.elasticsearch.rest.password");
         host = host.replace("http://", "");
 
         ClientConfiguration clientConfiguration = ClientConfiguration.builder()
                 .connectedTo(host)
+                .withBasicAuth(username, password)
                 .build();
         client = RestClients.create(clientConfiguration).rest();
 
@@ -186,6 +190,10 @@ public class RestHighLevelClientTest {
         Map<String, Object> mapping = indexMapping.sourceAsMap();
         log.info("mapping信息：{}", mapping);
         //</editor-fold>
+
+        if (true) {
+            return;
+        }
 
         //<editor-fold desc="修改mapping">
         // 如果属性已经指定了其他分词器，修改分词器会报错：Mapper for [text_max_word] conflicts with existing mapping:\n[mapper [text_max_word] has different [analyzer]]分词器指定后就不能修改了
