@@ -24,6 +24,7 @@ import java.util.Date;
 public class EasyEsDoc {
 
     /**
+     * 默认id为es自动生成的id
      * CUSTOMIZE：需要自己指定id，否则报错：the entity id must not be null；如果用户指定的id在es中已存在记录,则自动更新该id对应的记录.
      */
     @TableId(type = IdType.CUSTOMIZE)
