@@ -50,6 +50,7 @@ public class SpringbootApplicationTests {
 
 	@Test
 	public void update() {
+		// {"query":{"term":{"_id":{"value":"test","boost":1.0}}}}
 		EasyEsDoc doc = easyEsDocMapper.selectById("test");
 		log.info("查询结果：{}", doc);
 
@@ -98,6 +99,30 @@ public class SpringbootApplicationTests {
 
 	/**
 	 * 查询圆内的地点
+	 * {
+	 *   "size": 10000,
+	 *   "query": {
+	 *     "bool": {
+	 *       "filter": [
+	 *         {
+	 *           "geo_distance": {
+	 *             "geoPoint": [
+	 *               115,
+	 *               23
+	 *             ],
+	 *             "distance": 100000,
+	 *             "distance_type": "arc",
+	 *             "validation_method": "STRICT",
+	 *             "ignore_unmapped": false,
+	 *             "boost": 1
+	 *           }
+	 *         }
+	 *       ],
+	 *       "adjust_pure_negative": true,
+	 *       "boost": 1
+	 *     }
+	 *   }
+	 * }
 	 */
 	@Test
 	public void geoDistance() {
