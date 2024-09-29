@@ -15,6 +15,6 @@ public interface DocRepository extends ElasticsearchRepository<Doc, String> {
      * @param textSmart
      * @return
      */
-    public List<Doc> findByTextSmartLike(String textSmart);
+    List<Doc> findByTextSmartLikeOrderByDateDesc(String textSmart);
 
 }

@@ -12,13 +12,17 @@ import java.util.Date;
 
 
 /**
- * 实体类要指定id字段，否则会报错
+ * elasticsearch高版本一个index不支持多个type，将在8以上版本删除type
+ * 索引名只能小写，具体看注解源码注释
  */
 @Data
-@Document(indexName = "spring-boot-doc", type = "springboot")  //报错：elasticsearch高版本一个index不支持多个type，所以这里indexName改成allen1
+@Document(indexName = "spring-boot-doc", type = "已弃用")  // type已废弃，不需要指定
 public class Doc {
-//    @Id
-    private String id;
+    /**
+     * 实体类要指定id（如果字段名不是id，需要加@Id指定），否则会报错：No id property found for entity class pwd.allen.elastic.bean.Doc
+     */
+    @Id
+    private String myId;
     private Integer aInt;
     private float aFloat;
     private Date date;

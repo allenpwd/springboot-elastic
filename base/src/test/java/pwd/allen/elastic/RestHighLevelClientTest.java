@@ -3,6 +3,7 @@ package pwd.allen.elastic;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.ActionListener;
@@ -78,8 +79,8 @@ public class RestHighLevelClientTest {
 
     private RestHighLevelClient client;
 
-//    private static final String INDEX_NAME = "rest_high_level_client";
-    private static final String INDEX_NAME = "umkt_enterprise20230918";
+    private static final String INDEX_NAME = "rest_high_level_client";
+//    private static final String INDEX_NAME = "umkt_enterprise20230918";
 
     @Before
     public void init() throws IOException {
@@ -91,9 +92,13 @@ public class RestHighLevelClientTest {
         password = pps.getProperty("spring.elasticsearch.rest.password");
         host = host.replace("http://", "");
 
-        ClientConfiguration clientConfiguration = ClientConfiguration.builder()
-                .connectedTo(host)
-                .withBasicAuth(username, password)
+        ClientConfiguration.TerminalClientConfigurationBuilder configurationBuilder = ClientConfiguration.builder().connectedTo(host);
+
+        if (StrUtil.isNotEmpty(username) && StrUtil.isNotEmpty(password)) {
+            configurationBuilder.withBasicAuth(username, password);
+        }
+
+        ClientConfiguration clientConfiguration = configurationBuilder
                 .build();
         client = RestClients.create(clientConfiguration).rest();
 
@@ -406,7 +411,7 @@ public class RestHighLevelClientTest {
                 .query(queryBuilder)
                 .sort(new ScoreSortBuilder().order(SortOrder.DESC)) // 按分数降序
                 .sort(new FieldSortBuilder("date").order(SortOrder.DESC))  // 按日期降序
-                .fetchSource(new String[]{"text_*", "int"}, new String[]{"text_max_word"}) // 前面为includes，后面为excludes，结果是只返回除text_max_word之外的 以text_开头的列 和 int 列
+                .fetchSource(new String[]{"text_*", "int"}, new String[]{"text_max_word"}) // 筛选sources，前面为includes，后面为excludes，结果是只返回除text_max_word之外的 以text_开头的列 和 int 列
                 .highlighter(new HighlightBuilder().field("text_smart"))    // 指定 text_smart列 匹配的关键词高亮
                 .from(0)
                 .size(2);

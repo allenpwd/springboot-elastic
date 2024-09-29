@@ -65,7 +65,7 @@ public class Springboot03ElasticApplicationTests {
 		log.info("保存结果：{}", rel);
 
 		//检索
-		for (Doc b : docRepository.findByTextSmartLike("测试")) {
+		for (Doc b : docRepository.findByTextSmartLikeOrderByDateDesc("测试")) {
 			log.info(b.toString());
 		}
 	}
