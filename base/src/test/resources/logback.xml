@@ -8,7 +8,7 @@
     <property name="encoding" value="UTF-8" />
     <property name="plain" value="%msg%n" />
     <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
-    <property name="std" value="%d{HH:mm:ss.SSS}[%thread][%-5level]%msg %n" />
+    <property name="std" value="%d{HH:mm:ss.SSS}[%C-%M-%L %logger][%thread][%-5level]%msg %n" />
     <property name="mdc" value="%d{HH:mm:ss.SSS}[%thread][%-5level]%msg ProcessDefinitionId=[%X{mdcProcessDefinitionID}]
     executionId=[%X{mdcExecutionId}] mdcProcessInstanceID=[%X{mdcProcessInstanceID}] mdcBusinessKey=[%X{mdcBusinessKey}] %logger{10}.%M:%L%n%n"/>
     <property name="normal" value="%d{HH:mm:ss.SSS}[%thread][%-5level]%msg %n" />
@@ -25,7 +25,9 @@
     <root level="INFO">
         <appender-ref ref="stdout" />
     </root>
-    <logger name="pwd.allen.elastic" level="DEBUG" />
+    <logger name="pwd.allen.elastic" level="TRACE" />
+    <!-- 打印rest client的es请求日志 -->
+    <logger name="tracer" level="TRACE" />
     <!-- 打印springmvc map信息，新版spring日志要调到trace才有这坨信息 -->
     <logger name="org.springframework.web.servlet.mvc" level="trace" />
 </configuration>

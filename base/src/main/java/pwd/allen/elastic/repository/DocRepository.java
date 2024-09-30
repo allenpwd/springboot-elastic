@@ -17,4 +17,6 @@ public interface DocRepository extends ElasticsearchRepository<Doc, String> {
      */
     List<Doc> findByTextSmartLikeOrderByDateDesc(String textSmart);
 
+    List<Doc> findByaIntGreaterThanEqual(Integer aInt);
+
 }
