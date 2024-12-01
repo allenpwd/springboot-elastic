@@ -1,12 +1,14 @@
 package pwd.allen.easyes;
 
+import cn.easyes.core.conditions.LambdaEsQueryWrapper;
+import cn.easyes.core.conditions.LambdaEsUpdateWrapper;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
-import com.xpc.easyes.core.conditions.LambdaEsQueryWrapper;
-import com.xpc.easyes.core.conditions.LambdaEsUpdateWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
+import org.elasticsearch.search.aggregations.metrics.ParsedMax;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import pwd.allen.easyes.entity.EasyEsDoc;
 import pwd.allen.easyes.mapper.EasyEsDocMapper;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -139,6 +142,17 @@ public class SpringbootApplicationTests {
 
 		List<EasyEsDoc> list = easyEsDocMapper.selectList(wrapper);
 		log.info("查询结果：{}", list);
+	}
+
+	@Test
+	public void max() throws IOException {
+		LambdaEsQueryWrapper<EasyEsDoc> wrapper = new LambdaEsQueryWrapper<>();
+//		wrapper.likeRight(EasyEsDoc::getTextMaxWord,"推");
+		wrapper.max(EasyEsDoc::getAInt);
+		wrapper.size(0);
+		SearchResponse response = easyEsDocMapper.search(wrapper);
+		ParsedMax aInt = (ParsedMax) response.getAggregations().get("aInt");
+		System.out.println("" + Double.valueOf(aInt.getValue()).intValue());
 	}
 
 }

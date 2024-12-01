@@ -3,7 +3,9 @@ Elasticsearch是一个分布式搜索服务，提供Restful API，底层基于Lu
 并且提供自动resharding的功能，github等大型的站点也是采用了ElasticSearch作为其搜索服务
 
 ### docker安装elasticsearch
-- docker run -e ES_JAVA_OPTS="-Xms256m -Xmx256m" -d -p 9200:9200 -p 9300:9300 --name myES <IMAGEID>
+```docker
+docker run -e ES_JAVA_OPTS="-Xms256m -Xmx256m" -d -p 9200:9200 -p 9300:9300 --name myES <IMAGEID>
+```
 
 ### 问题
 #### elasticsearch版本兼容问题

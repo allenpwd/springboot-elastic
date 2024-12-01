@@ -1,11 +1,11 @@
 package pwd.allen.easyes.entity;
 
-import com.xpc.easyes.core.anno.TableField;
-import com.xpc.easyes.core.anno.TableId;
-import com.xpc.easyes.core.anno.TableName;
-import com.xpc.easyes.core.enums.Analyzer;
-import com.xpc.easyes.core.enums.FieldType;
-import com.xpc.easyes.core.enums.IdType;
+import cn.easyes.annotation.IndexField;
+import cn.easyes.annotation.IndexId;
+import cn.easyes.annotation.IndexName;
+import cn.easyes.annotation.rely.Analyzer;
+import cn.easyes.annotation.rely.FieldType;
+import cn.easyes.annotation.rely.IdType;
 import lombok.Data;
 import org.elasticsearch.common.geo.GeoPoint;
 
@@ -19,7 +19,7 @@ import java.util.Date;
  * @author 门那粒沙
  * @create 2022-05-04 13:25
  **/
-@TableName(value = "easy_es_doc")
+@IndexName(value = "easy_es_doc")
 @Data
 public class EasyEsDoc {
 
@@ -27,9 +27,9 @@ public class EasyEsDoc {
      * 默认id为es自动生成的id
      * CUSTOMIZE：需要自己指定id，否则报错：the entity id must not be null；如果用户指定的id在es中已存在记录,则自动更新该id对应的记录.
      */
-    @TableId(type = IdType.CUSTOMIZE)
+    @IndexId(type = IdType.CUSTOMIZE)
     private String id;
-    @TableField(fieldType = FieldType.TEXT)
+    @IndexField(fieldType = FieldType.TEXT)
     private String textStand;
     private Integer aInt;
     private Float aFloat;
@@ -41,10 +41,10 @@ public class EasyEsDoc {
      * (GeoBoundingBox,GeoDistance,GeoPolygon)字段索引类型必须为geo_point
      * GeoShape字段索引类型必须为geo_shape
      */
-    @TableField(fieldType = FieldType.GEO_POINT)
+    @IndexField(fieldType = FieldType.GEO_POINT)
     private String geoPoint;
-    @TableField(fieldType= FieldType.TEXT,analyzer= Analyzer.IK_SMART,searchAnalyzer=Analyzer.IK_SMART)
+    @IndexField(fieldType= FieldType.TEXT,analyzer= Analyzer.IK_SMART,searchAnalyzer=Analyzer.IK_SMART)
     private String textSmart;
-    @TableField(fieldType= FieldType.TEXT,analyzer= Analyzer.IK_MAX_WORD,searchAnalyzer=Analyzer.IK_MAX_WORD)
+    @IndexField(fieldType= FieldType.TEXT,analyzer= Analyzer.IK_MAX_WORD,searchAnalyzer=Analyzer.IK_MAX_WORD)
     private String textMaxWord;
 }

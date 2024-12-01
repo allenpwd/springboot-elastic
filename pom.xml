@@ -21,7 +21,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
-		<easy-es.version>0.9.10</easy-es.version>
+		<easy-es.version>1.1.1</easy-es.version>
 <!--		<elasticsearch.version>7.0.1</elasticsearch.version>-->
 	</properties>
 

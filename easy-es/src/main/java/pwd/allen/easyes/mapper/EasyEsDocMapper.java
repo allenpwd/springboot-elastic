@@ -1,6 +1,6 @@
 package pwd.allen.easyes.mapper;
 
-import com.xpc.easyes.core.conditions.interfaces.BaseEsMapper;
+import cn.easyes.core.conditions.interfaces.BaseEsMapper;
 import pwd.allen.easyes.entity.EasyEsDoc;
 
 /**
